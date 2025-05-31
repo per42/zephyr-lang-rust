@@ -82,7 +82,7 @@ impl Lora {
         tx: bool,
         iq_inverted: bool,
         public_network: bool,
-    ) -> Result<(), ::core::ffi::c_int> {
+    ) -> crate::Result<()> {
         let mut config_mut = raw::lora_modem_config {
             frequency,
             bandwidth: match bandwidth {
@@ -111,11 +111,19 @@ impl Lora {
             iq_inverted,
             public_network,
         };
+        unsafe { crate::error::to_result_void(raw::lora_config(self.device, &mut config_mut)) }
+    }
+
+    /// Send data
+    pub fn send(&self, data: &[u8]) -> crate::Result<()> {
         unsafe {
-            match raw::lora_config(self.device, &mut config_mut) {
-                0 => Ok(()),
-                ret => Err(ret),
-            }
+            crate::error::to_result_void(raw::lora_send(
+                self.device,
+                data.as_ptr() as *mut u8,
+                data.len()
+                    .try_into()
+                    .expect("The data length can't fit an u32"),
+            ))
         }
     }
 }
