@@ -1,6 +1,6 @@
 //! Device wrappers for LoRa
 
-use super::Unique;
+use super::{NoStatic, Unique};
 use crate::raw;
 
 /// A LoRa device
@@ -60,7 +60,7 @@ pub enum CodingRate {
 
 impl Lora {
     #[allow(dead_code)]
-    pub(crate) unsafe fn new(unique: &Unique, device: *const raw::device) -> Option<Lora> {
+    pub(crate) unsafe fn new(unique: &Unique, _static: &NoStatic, device: *const raw::device) -> Option<Lora> {
         if !unique.once() {
             return None;
         }

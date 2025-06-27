@@ -67,16 +67,13 @@
 
 - name: lora
   rules:
-  - type: compatible
-    value:
+    - !Compatible
       names:
-      - st,stm32wl-subghz-radio
+        - st,stm32wl-subghz-radio
       level: 0
   actions:
-  - type: instance
-    value:
-      raw:
-        type: myself
+    - !Instance
+      raw: !Myself
       device: crate::device::lora::Lora
 
 # Generate a pseudo node that matches all of the labels across the tree with their nodes.
