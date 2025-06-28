@@ -15,4 +15,5 @@ Zephyr low-level API bindings.
 [build-dependencies]
 anyhow = "1.0"
 bindgen = { version = "0.70.1", features = ["experimental"] }
+regex = "1.11.1" 
 # zephyr-build = { version = "0.1.0", path = "../zephyr-build" }

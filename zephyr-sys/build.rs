@@ -14,6 +14,7 @@
 use anyhow::Result;
 
 use bindgen::Builder;
+use regex::Regex;
 
 use std::env;
 use std::path::{Path, PathBuf};
@@ -64,6 +65,15 @@ fn main() -> Result<()> {
         )
         .use_core()
         .clang_arg(&target_arg);
+
+    // Some toolchains default to use short enums. This must be matched when using enum struct members.
+    // https://doc.rust-lang.org/beta/rustc/platform-support/arm-none-eabi.html#cross-compilation-toolchains-and-c-code
+    let bindings = if Regex::new("(arm|thumb).*?-none-eabi(hf)?")?.is_match(&env::var("TARGET")?) {
+        bindings.clang_arg("-fshort-enums")
+    } else {
+        bindings
+    };
+
     let bindings = define_args(bindings, "-I", "INCLUDE_DIRS");
     let bindings = define_args(bindings, "-D", "INCLUDE_DEFINES");
     let bindings = bindings
@@ -79,10 +89,10 @@ fn main() -> Result<()> {
         .allowlist_function("gpio_.*")
         .allowlist_function("flash_.*")
         .allowlist_function("zr_.*")
-        .allowlist_function("lora_.*")
         .allowlist_item("GPIO_.*")
         .allowlist_item("FLASH_.*")
         .allowlist_item("lora_.*")
+        .rustified_enum("lora_.*")
         .allowlist_item("Z_.*")
         .allowlist_item("ZR_.*")
         .allowlist_item("K_.*")
