@@ -3,13 +3,12 @@
 
 #![no_std]
 
-#[macro_use]
 extern crate alloc;
 
-use log::info;
 use core::primitive::str;
+use log::info;
 
-use zephyr::time::{sleep, Duration, Forever};
+use zephyr::time::{sleep, Forever};
 
 use zephyr::raw::lora_coding_rate;
 use zephyr::raw::lora_datarate;
@@ -24,7 +23,7 @@ extern "C" fn rust_main() {
         zephyr::set_logger().unwrap();
     }
 
-    let lora0 = zephyr::devicetree::aliases::lora0::get_instance().unwrap();
+    let mut lora0 = zephyr::devicetree::aliases::lora0::get_instance().unwrap();
 
     lora0
         .config(&lora_modem_config {
@@ -42,12 +41,27 @@ extern "C" fn rust_main() {
 
     /* Receive 4 packets synchronously */
     info!("Synchronous reception");
-    for counter in 0..4 {
-        let digit = counter % 10;
-        let (data, rssi, snr) = lora0
-            .recv(MAX_DATA_LEN, Forever.into())
-            .unwrap();
+    for _counter in 0..4 {
+        let (data, rssi, snr) = lora0.recv(MAX_DATA_LEN, Forever.into()).unwrap();
         info!("LoRa RX RSSI: {} dBm, SNR: {} dB", rssi, snr);
-        info!("LoRa RX payload: {}", str::from_utf8(&data).expect("Message should be in UTF8"));
+        info!(
+            "LoRa RX payload: {}",
+            str::from_utf8(&data).expect("Message should be in UTF8")
+        );
     }
+
+    /* Enable asynchronous reception */
+    info!("Asynchronous reception");
+
+    lora0
+        .recv_async(|data: &[u8], rssi: i16, snr: i8| {
+            info!("LoRa RX RSSI: {} dBm, SNR: {} dB", rssi, snr);
+            info!(
+                "LoRa RX payload: {}",
+                str::from_utf8(data).expect("Message should be in UTF8")
+            );
+        })
+        .unwrap();
+
+    sleep(Forever);
 }
